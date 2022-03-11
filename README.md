@@ -1,4 +1,4 @@
-# disease-predictor
+# Disease predictor
 
 ## Setup
 ```
@@ -10,4 +10,7 @@ source predictor-env/bin/activate
 
 # Deactive venv
 deactivate
+
+# Install all requirements
+pip3 install -r requirements.txt
 ```
