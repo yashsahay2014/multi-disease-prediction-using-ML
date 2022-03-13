@@ -14,6 +14,6 @@ deactivate
 # Install all requirements
 pip3 install -r requirements.txt
 
-# Start the server
+# Start the app
 cd frontend && npm start
 ```
