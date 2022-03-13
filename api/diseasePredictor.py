@@ -2,9 +2,10 @@ import requests
 import nltk
 import operator
 import math
-from time import time
+import json
 import numpy as np
 import pandas as pd
+from time import time
 from bs4 import BeautifulSoup
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -18,9 +19,9 @@ from collections import Counter
 from statistics import mean
 from treatment import diseaseDetail
 
-class Utils:
+class DiseasePredictor:
     def __init__(self):
-        nltk.download('all')
+        # nltk.download('all')
 
         self.stop_words = stopwords.words('english')
 
@@ -45,8 +46,29 @@ class Utils:
         # Preprocess
         self.lemmatizer = WordNetLemmatizer()
         self.splitter = RegexpTokenizer(r'\w+')
-        # Taking symptoms from user as input 
-        self.user_symptoms = str(input("Please enter symptoms separated by comma(,):\n")).lower().split(',')
+
+
+    # returns the list of synonyms of the input word from thesaurus.com (https://www.thesaurus.com/) 
+    # and wordnet (https://www.nltk.org/howto/wordnet.html)
+    def synonyms(self, term):
+        synonyms = []
+        response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
+        soup = BeautifulSoup(response.content,  "html.parser")
+        try:
+            container=soup.find('section', {'class': 'MainContentContainer'}) 
+            row=container.find('div',{'class':'css-191l5o0-ClassicContentCard'})
+            row = row.find_all('li')
+            for x in row:
+                synonyms.append(x.get_text())
+        except:
+            None
+        for syn in wordnet.synsets(term):
+            synonyms+=syn.lemma_names()
+        return set(synonyms)
+
+    def setInitialSymptoms(self, initial_symptoms):    
+        # Taking symptoms from user as input str(input("Please enter symptoms separated by comma(,):\n"))
+        self.user_symptoms = initial_symptoms.lower().split(',')
         # Preprocessing the input symptoms
         self.processed_user_symptoms=[]
         for sym in self.user_symptoms:
@@ -68,9 +90,6 @@ class Utils:
                     str_sym.update(subset)
             str_sym.add(' '.join(user_sym))
             user_symptoms.append(' '.join(str_sym).replace('_',' '))
-        # query expansion performed by joining synonyms found for each symptoms initially entered
-        print("After query expansion done by using the symptoms entered")
-        print(user_symptoms)
 
         # Loop over all the symptoms in dataset and check its similarity score to the synonym string of the user-input 
         # symptoms. If similarity>0.5, add the symptom to the final list
@@ -85,62 +104,52 @@ class Utils:
                 if count/len(data_sym_split)>0.5:
                     found_symptoms.add(data_sym)
         found_symptoms = list(found_symptoms)
-
-        # Print all found symptoms
-        print("Top matching symptoms from your search!")
-        for idx, symp in enumerate(found_symptoms):
-            print(idx,":",symp)
             
         # Show the related symptoms found in the dataset and ask user to select among them
-        select_list = input("\nPlease select the relevant symptoms. Enter indices (separated-space):\n").split()
+        # select_list = input("\nPlease select the relevant symptoms. Enter indices (separated-space):\n").split()
 
         # Find other relevant symptoms from the dataset based on user symptoms based on the highest co-occurance with the
         # ones that is input by the user
         dis_list = set()
-        final_symp = [] 
+        self.final_symp = [] 
         counter_list = []
-        for idx in select_list:
-            symp=found_symptoms[int(idx)]
-            final_symp.append(symp)
+        for idx, itm in enumerate(found_symptoms):
+            symp=found_symptoms[idx]
+            self.final_symp.append(symp)
             dis_list.update(set(self.df_norm[self.df_norm[symp]==1]['label_dis']))
         
         for dis in dis_list:
             row = self.df_norm.loc[self.df_norm['label_dis'] == dis].values.tolist()
             row[0].pop(0)
             for idx,val in enumerate(row[0]):
-                if val!=0 and self.dataset_symptoms[idx] not in final_symp:
+                if val!=0 and self.dataset_symptoms[idx] not in self.final_symp:
                     counter_list.append(self.dataset_symptoms[idx])
         
         # Symptoms that co-occur with the ones selected by user              
         dict_symp = dict(Counter(counter_list))
-        dict_symp_tup = sorted(dict_symp.items(), key=operator.itemgetter(1),reverse=True)   
-        #print(dict_symp_tup)
+        self.dict_symp_tup = sorted(dict_symp.items(), key=operator.itemgetter(1),reverse=True)
+        return found_symptoms
 
-        # Iteratively, suggest top co-occuring symptoms to the user and ask to select the ones applicable 
+
+    def getRelatedSymptoms(self):
         found_symptoms=[]
-        count=0
-        for tup in dict_symp_tup:
-            count+=1
+        for tup in self.dict_symp_tup:
             found_symptoms.append(tup[0])
-            if count%5==0 or count==len(dict_symp_tup):
-                print("\nCommon co-occuring symptoms:")
-                for idx,ele in enumerate(found_symptoms):
-                    print(idx,":",ele)
-                select_list = input("Do you have have of these symptoms? If Yes, enter the indices (space-separated), 'no' to stop, '-1' to skip:\n").lower().split();
-                if select_list[0]=='no':
-                    break
-                if select_list[0]=='-1':
-                    found_symptoms = [] 
-                    continue
-                for idx in select_list:
-                    final_symp.append(found_symptoms[int(idx)])
-                found_symptoms = []
+        return found_symptoms
 
+    def addSymptom(self, symptom):
+        self.final_symp.append(symptom)
+        return self.final_symp
+
+    def removeSymptom(self, symptom):
+        if symptom in self.final_symp:
+            self.final_symp.remove(symptom)
+        return self.final_symp
+
+    def predict(self):
         # Create query vector based on symptoms selected by the user
-        print("\nFinal list of Symptoms that will be used for prediction:")
         sample_x = [0 for x in range(0,len(self.dataset_symptoms))]
-        for val in final_symp:
-            print(val)
+        for val in self.final_symp:
             sample_x[self.dataset_symptoms.index(val)]=1
         
         # Predict disease
@@ -153,7 +162,6 @@ class Utils:
         diseases.sort()
         topk = prediction[0].argsort()[-k:][::-1]
 
-        print(f"\nTop {k} diseases predicted based on symptoms")
         topk_dict = {}
         # Show top 10 highly probable disease to the user.
         for idx,t in  enumerate(topk):
@@ -164,41 +172,20 @@ class Utils:
             for idx,val in enumerate(row[0]):
                 if val!=0:
                     match_sym.add(self.dataset_symptoms[idx])
-            prob = (len(match_sym.intersection(set(final_symp)))+1)/(len(set(final_symp))+1)
+            prob = (len(match_sym.intersection(set(self.final_symp)))+1)/(len(set(self.final_symp))+1)
             prob *= mean(self.scores)
             topk_dict[t] = prob
 
-        j = 0
-        topk_index_mapping = {}
         topk_sorted = dict(sorted(topk_dict.items(), key=lambda kv: kv[1], reverse=True))
-        
+
+        diseaseNames = []
+        diseaseProbabilities = []
+
         for key in topk_sorted:
             prob = topk_sorted[key]*100
-            print(str(j) + " Disease name:",diseases[key], "\tProbability:",str(round(prob, 2))+"%")
-            topk_index_mapping[j] = key
-            j += 1
+            diseaseNames.append(diseases[key])
+            diseaseProbabilities.append(round(prob, 2))
 
-        select = input("\nMore details about the disease? Enter index of disease or '-1' to discontinue and close the system:\n")
-        if select!='-1':
-            dis=diseases[topk_index_mapping[int(select)]]
-            print()
-            print(diseaseDetail(dis))
-
-    # returns the list of synonyms of the input word from thesaurus.com (https://www.thesaurus.com/) 
-    # and wordnet (https://www.nltk.org/howto/wordnet.html)
-    def synonyms(self, term):
-        synonyms = []
-        response = requests.get('https://www.thesaurus.com/browse/{}'.format(term))
-        soup = BeautifulSoup(response.content,  "html.parser")
-        try:
-            container=soup.find('section', {'class': 'MainContentContainer'}) 
-            row=container.find('div',{'class':'css-191l5o0-ClassicContentCard'})
-            row = row.find_all('li')
-            for x in row:
-                synonyms.append(x.get_text())
-        except:
-            None
-        for syn in wordnet.synsets(term):
-            synonyms+=syn.lemma_names()
-        return set(synonyms)
+        predictions = [{"name": d, "probability": p} for d, p in zip(diseaseNames, diseaseProbabilities)]
+        return predictions
 
