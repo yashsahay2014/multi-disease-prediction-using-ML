@@ -13,6 +13,7 @@
   },
   "scripts": {
     "start": "concurrently \"react-scripts start\" \"npm:api\"",
+    "frontend": "react-scripts start",
     "api": "cd ../api && predictor-env/bin/flask run --no-debugger",
     "build": "react-scripts build",
     "test": "react-scripts test",

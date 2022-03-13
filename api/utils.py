@@ -167,7 +167,7 @@ class Utils:
             prob = (len(match_sym.intersection(set(final_symp)))+1)/(len(set(final_symp))+1)
             prob *= mean(self.scores)
             topk_dict[t] = prob
-        
+
         j = 0
         topk_index_mapping = {}
         topk_sorted = dict(sorted(topk_dict.items(), key=lambda kv: kv[1], reverse=True))
