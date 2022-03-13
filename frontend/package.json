@@ -12,7 +12,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "concurrently \"react-scripts start\" \"npm:api\"",
+    "start": "concurrently \"npm:frontend\" \"npm:api\"",
     "frontend": "react-scripts start",
     "api": "cd ../api && predictor-env/bin/flask run --no-debugger",
     "build": "react-scripts build",
