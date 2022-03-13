@@ -1,16 +1,29 @@
 # Disease predictor
 
-## Setup
+## Install python requirements
 ```
+cd api/
+
 # Create new virtual environment (venv)
-python3 -m venv predictor-env
+python3 -m venv venv
 
 # Activate venv
-source predictor-env/bin/activate
+source venv/bin/activate
+
+# Install python requirements
+pip3 install -r requirements.txt
 
 # Deactive venv
 deactivate
+```
 
-# Install all requirements
-pip3 install -r requirements.txt
+## Install react dependencies
+```
+cd frontend && npm install
+```
+
+## Start the app
+```
+# In frontend/
+npm start
 ```
