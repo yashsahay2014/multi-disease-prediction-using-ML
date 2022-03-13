@@ -34,7 +34,7 @@ def diseaseDetail(term):
                             symptom=re.sub(r'<[^<]+?>',' ',symptom) # All the tags
                             symptom=re.sub(r'\[.*\]','',symptom) # Remove citation text                     
                             symptom=symptom.replace("&gt",">")
-                            ret+=data.get_text()+" - "+symptom+"\n"
+                            ret+=data.get_text()+" : "+symptom+"\n"
                             # print(data.get_text(),"-",symptom)
                             filled = 1
                 if filled:
