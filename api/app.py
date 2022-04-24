@@ -1,14 +1,17 @@
+from crypt import methods
 from flask import Flask, jsonify, request
 from diseasePredictor import DiseasePredictor
 from treatment import diseaseDetail
+from flask_cors import CORS
 
 import warnings
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
+cors = CORS(app, resources={r'/*': {'origins': '*'}})
 diseasePredictor = DiseasePredictor()
 
-@app.route('/')
+@app.route('/', methods = ['GET'])
 def home():
     return "Hello, World!"
 

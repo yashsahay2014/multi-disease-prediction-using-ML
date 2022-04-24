@@ -10,11 +10,11 @@ class HomePage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      current_page: "Home", // Name of the current component
+      current_page: "Symptom", // Name of the current component
       tab_name: "Welcome",
       tab_progress: 25,
-      button_is_disabled: true, // Next button disabled if not agreed to terms
-      home_button_checked: false, //Check if terms are agreed
+      button_is_disabled: false, // Next button disabled if not agreed to terms
+      home_button_checked: true, //Check if terms are agreed
       age: "18", //Patient Default Age
       button_name: "Next", //Button name retry or next
       gender: "Male", //Default gender
@@ -35,6 +35,7 @@ class HomePage extends Component {
       user_symptom_length: "",
     };
     this.symptomPage = React.createRef();
+    this.setSymptom = this.setSymptom.bind(this);
   }
 
   home_button_check_event = (e) => {
@@ -49,33 +50,24 @@ class HomePage extends Component {
   get_next_page = (e) => {
     // eslint-disable-next-line default-case
     switch (this.state.current_page) {
-      case "Home":
-        return this.setState({
-          current_page: "Patient",
-          tab_progress: 50,
-          // home_nav_icon: <CheckIcon className={"check-icon"} style={{ color: "white!important" }} />,
-          home_nav_value: true,
-          button_is_disabled: false,
-          home_button_checked: false,
-        });
-      case "Patient":
-        return this.setState({
-          current_page: "Patient-2",
-
-          button_name: "Next",
-          patient_2_next_button_disabled: true,
-        });
-      case "Patient-2":
-        return this.setState({
-          current_page: "Symptom",
-          tab_progress: 75,
-          button_name: "Finish",
-
-          // patient_nav_icon: <CheckIcon className={"check-icon"} style={{ color: "white!important" }} />,
-          patient_nav_value: true,
-          user_symptom_length: 0,
-        });
       case "Symptom":
+        console.log(this.state.user_symptoms);
+        let symptomsToSend = "";
+        this.state.user_symptoms.forEach(symptom => {
+          symptomsToSend = symptomsToSend + ", "+ symptom;
+        })
+        
+        symptomsToSend = symptomsToSend.slice(2, symptomsToSend.length);
+        
+        console.log(symptomsToSend)
+        
+        let formData = new FormData();
+        formData.append('initial-symptoms', symptomsToSend);
+        fetch('http://127.0.0.1:5000/initial-symptoms', {
+          method: 'POST',
+          body: formData,
+        });
+
         return this.setState({
           current_page: "Disease",
           button_name: "Retry",
@@ -176,39 +168,25 @@ class HomePage extends Component {
           tab_progress: 50,
           button_name: "Next",
           patient_nav_value: false,
-          patient_2_next_button_disabled: true,
+          patient_2_next_button_disabled: false,
           disease_possibility: [],
           user_symptoms: [],
         });
-      case "Patient-2":
-        return this.setState({ current_page: "Patient", patient_2_next_button_disabled: false });
-      case "Patient":
-        return this.setState({
-          current_page: "Home",
-          home_nav_icon: <p>1</p>,
-          home_nav_value: false,
-          button_is_disabled: true,
-          home_button_checked: false,
-          tab_progress: 25,
-          user_symptom_length: 1,
-        });
     }
   };
+  setSymptom(symptoms) {
+    this.setState({user_symptoms: symptoms});
+  }
   showPage = (e) => {
     const { current_page, home_button_checked, age, male, female } = this.state;
     // eslint-disable-next-line default-case
     switch (current_page) {
-      case "Home":
-        return <Home isChecked={home_button_checked} checked={this.home_button_check_event} />;
-      case "Patient":
-        return <Patient male={male} female={female} gender={this.get_gender} age={age} ageChange={this.get_age_event} />;
-      case "Patient-2":
-        return <Patient2 callback={this.patient_2_callback} />;
       case "Symptom":
         return (
           <Symptom
             ref={this.symptomPage}
             userSymptoms={this.state.user_symptoms}
+            setSymptom={this.setSymptom}
             diseasePossibility={this.state.disease_possibility}
             getPossibleDisease={this.symptomInfoCallback}
             pageCallback={this.symptom_page_button_callback}
@@ -236,9 +214,7 @@ class HomePage extends Component {
               <div className="desktop:grid-col-2">
                 <ul className="side-menu-list padding-left-2">
 				  <li id="progressbar"><div className={`${tab_progress === 25 && "progressbardiv25"} ${tab_progress === 50 && "progressbardiv50"} ${tab_progress === 75 && "progressbardiv75"} ${tab_progress === 100 && "progressbardiv100"}`}></div></li>
-                  <li className={`${current_page === "Home" ? "active" : "done"}`}>Welcome</li>
-                  <li className={`${tab_progress === 50 && "active"} ${tab_progress < 50 && "list"} ${tab_progress > 50 && "done"}`}>Patient</li>
-                  <li className={`${tab_progress === 75 && "active"} ${tab_progress < 75 && "list"} ${tab_progress > 75 && "done"}`}>Symptom</li>
+                  <li className={`${tab_progress === 33 && "active"} ${tab_progress < 33 && "list"} ${tab_progress > 50 && "done"}`}>Symptom</li>
                   <li className={`${tab_progress === 100 && "active"} ${tab_progress < 100 && "list"} ${tab_progress > 100 && "done"}`}>Disease</li>
                 </ul>
               </div>
@@ -253,7 +229,7 @@ class HomePage extends Component {
                   {/* {current_page === "Symptom" ? this.renderResetButton() : ""} */}
                   <button
                     className={`usa-button ${button_is_disabled || patient_2_next_button_disabled || user_symptom_length === 0 ? "" : "next"}`}
-                    disabled={button_is_disabled || patient_2_next_button_disabled || user_symptom_length === 0}
+                    disabled={ user_symptom_length === 0}
                     type="submit"
                     onClick={this.get_next_page}
                   >
