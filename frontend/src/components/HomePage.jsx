@@ -1,11 +1,11 @@
 import React, { Component } from "react";
 import Navbar from "./Navbar";
 import "./HomePage.css";
-import Home from "./Home/Home";
-import Patient from "./Patient/Patient1";
-import Patient2 from "./Patient/Patient2";
 import Symptom from "./Symptom/Symptom";
-import Disease from "./Disease/Disease";
+import MatchingSymptom from './Symptom/MatchingSymptom';
+import CooccuringSymptom from './Symptom/CooccuringSymptom';
+import PredictedDisease from './Symptom/PredictedDisease';
+
 class HomePage extends Component {
   constructor(props) {
     super(props);
@@ -33,13 +33,17 @@ class HomePage extends Component {
       disease_possibility: [],
       user_symptoms: [],
       user_symptom_length: "",
+      matchingSymptoms: [],
+      cooccuringSymptoms: [],
     };
     this.symptomPage = React.createRef();
     this.setSymptom = this.setSymptom.bind(this);
+    this.addCooccuringSymptom = this.addCooccuringSymptom.bind(this);
+    this.setMatchingSymptoms = this.setMatchingSymptoms.bind(this);
+    this.getFinalSymptoms = this.getFinalSymptoms.bind(this);
   }
 
   home_button_check_event = (e) => {
-    // console.log("Event Called");
     if (e.target.checked === true) {
       return this.setState({ button_is_disabled: false, home_button_checked: true, home_nav_value: true, patient_nav_value: true });
     } else if (e.target.checked === false) {
@@ -48,10 +52,8 @@ class HomePage extends Component {
   };
 
   get_next_page = (e) => {
-    // eslint-disable-next-line default-case
     switch (this.state.current_page) {
       case "Symptom":
-        console.log(this.state.user_symptoms);
         let symptomsToSend = "";
         this.state.user_symptoms.forEach(symptom => {
           symptomsToSend = symptomsToSend + ", "+ symptom;
@@ -59,53 +61,42 @@ class HomePage extends Component {
         
         symptomsToSend = symptomsToSend.slice(2, symptomsToSend.length);
         
-        console.log(symptomsToSend)
-        
         let formData = new FormData();
         formData.append('initial-symptoms', symptomsToSend);
         fetch('http://127.0.0.1:5000/initial-symptoms', {
           method: 'POST',
           body: formData,
+        })
+        .then(response => response.json())
+        .then(matchingSymptoms => {
+           this.setState({
+            current_page: "MatchingSymptom",
+            button_name: "Next",
+            tab_progress: 33,
+            matchingSymptoms: matchingSymptoms.matchingSymptoms,
+            symptom_nav_value: true,
+            disease_nav_value: true,
+          });
         });
+        return;
 
+      case "MatchingSymptom":
         return this.setState({
-          current_page: "Disease",
-          button_name: "Retry",
-          tab_progress: 100,
-          // symptom_nav_icon: <CheckIcon className={"check-icon"} style={{ color: "white!important" }} />,
-          // disease_nav_icon: <CheckIcon className={"check-icon"} style={{ color: "white!important" }} />,
+          current_page: "CooccuringSymptom",
+          button_name: "Next",
+          tab_progress: 66,
           symptom_nav_value: true,
           disease_nav_value: true,
         });
-      case "Disease":
+      case "CooccuringSymptom":
         return this.setState({
-          tab_progress: 25,
-          current_page: "Home", // Name of the current component
-          button_is_disabled: true, // Next button disabled if not agreed to terms
-          home_button_checked: false, //Check if terms are agreed
-          age: "18", //Patient Default Age
-          button_name: "Next", //Button name retry or next
-          gender: "Male", //Default gender
-          male: true, // patient checkbox
-          female: false, // patient checkbox
-          home_nav_icon: <p>1</p>,
-          patient_nav_icon: <p>2</p>,
-          symptom_nav_icon: <p>3</p>,
-          disease_nav_icon: <p>4</p>,
-          patient_question: [],
-          patient_2_next_button_disabled: "",
-          home_nav_value: false,
-          patient_nav_value: false,
-          symptom_nav_value: false,
-          disease_nav_value: false,
-          disease_possibility: [],
-          user_symptoms: [],
-          user_symptom_length: "",
+          current_page: "PredictedDisease",
+          button_name: "Next",
+          tab_progress: 100,
         });
     }
   };
   get_gender = (e) => {
-    // console.log("slf", e.target.value);
     if (e.target.value === "male") {
       this.setState({
         male: true,
@@ -177,9 +168,25 @@ class HomePage extends Component {
   setSymptom(symptoms) {
     this.setState({user_symptoms: symptoms});
   }
+
+  addCooccuringSymptom(symptoms) {
+    console.log(symptoms);
+    this.setState({cooccuringSymptoms: symptoms});
+  }
+
+  setMatchingSymptoms(symptoms) {
+    console.log(symptoms);
+    console.log(this.state.matchingSymptoms);
+    this.setState({matchingSymptoms: symptoms});
+  }
+
+  getFinalSymptoms() {
+    console.log([...this.state.matchingSymptoms, ...this.state.cooccuringSymptoms]);
+    return [...this.state.matchingSymptoms, ...this.state.cooccuringSymptoms];
+  }
+
   showPage = (e) => {
     const { current_page, home_button_checked, age, male, female } = this.state;
-    // eslint-disable-next-line default-case
     switch (current_page) {
       case "Symptom":
         return (
@@ -192,8 +199,25 @@ class HomePage extends Component {
             pageCallback={this.symptom_page_button_callback}
           />
         );
-      case "Disease":
-        return <Disease patientInfo={this.state.patient_question} disease_with_possibility={this.state.disease_possibility} gender={this.state.gender} age={this.state.age} />;
+      case "MatchingSymptom":
+        return (
+          <MatchingSymptom 
+            matchingSymptoms={this.state.matchingSymptoms}
+            setMatchingSymptoms={this.setMatchingSymptoms}
+          />
+        );
+      case "CooccuringSymptom":
+        return (
+          <CooccuringSymptom 
+            addCooccuringSymptom={this.addCooccuringSymptom}
+          />
+        );
+      case "PredictedDisease":
+        return (
+          <PredictedDisease 
+            symptomList={this.getFinalSymptoms}
+          />
+        );
     }
   };
   renderResetButton = () => {

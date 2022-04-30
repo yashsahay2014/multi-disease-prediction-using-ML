@@ -1,3 +1,4 @@
+from array import array
 from crypt import methods
 from flask import Flask, jsonify, request
 from diseasePredictor import DiseasePredictor
@@ -29,18 +30,12 @@ def getRelatedSymptoms():
         suggestedSymptoms = diseasePredictor.getRelatedSymptoms()
     )
 
-@app.route('/add-symptom', methods = ['PUT'])
-def addSymptom():
+@app.route('/set-symptom', methods = ['PUT'])
+def setSymptom():
     symptom = request.form.get('symptom')
+    array_of_symptoms = symptom.split(',')
     return jsonify (
-        symptoms = diseasePredictor.addSymptom(symptom)
-    )
- 
-@app.route('/remove-symptom', methods = ['DELETE'])
-def removeSymptom():
-    symptom = request.form.get('symptom')
-    return jsonify (
-        symptoms = diseasePredictor.removeSymptom(symptom)
+        symptoms = diseasePredictor.setSymptom(array_of_symptoms)
     )
 
 @app.route('/predict-disease', methods = ['GET'])

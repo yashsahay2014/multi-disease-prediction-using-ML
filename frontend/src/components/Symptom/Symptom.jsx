@@ -122,11 +122,9 @@ class Symptom extends Component {
       return each.toLowerCase().includes(this.state.searched.toLowerCase());
     });
     symps.push(this.state.searched.toLowerCase());
-    console.log(symps, "symps");
     return (
       <div id="#Symptoms" className="grid-row width-full">
         <div className="col-12 tablet:grid-col-5">
-          {/* <div className="grid-row"> */}
           <input
             class="usa-input searchSymptomsInput"
             onKeyDown={this.keyDownEvent}
@@ -136,15 +134,12 @@ class Symptom extends Component {
             name="input-type-text"
             type="text"
           />
-          {/* </div> */}
-          {/* <div > */}
           <ul className="symtomsListBox padding-top-2">
             {symps
               .filter((item) => !this.state.user_symptoms.includes(item))
               .map((key, id) => {
                 return (
                   <li key={id}>
-                    {/* {console.log(key, "key")} */}
                     <button onClick={this.addSymptomButtonEvent.bind(this)} value={key}>
                       {key}
                     </button>

@@ -137,13 +137,8 @@ class DiseasePredictor:
             found_symptoms.append(tup[0])
         return found_symptoms
 
-    def addSymptom(self, symptom):
-        self.final_symp.append(symptom)
-        return self.final_symp
-
-    def removeSymptom(self, symptom):
-        if symptom in self.final_symp:
-            self.final_symp.remove(symptom)
+    def setSymptom(self, symptom):
+        self.final_symp = symptom
         return self.final_symp
 
     def predict(self):
