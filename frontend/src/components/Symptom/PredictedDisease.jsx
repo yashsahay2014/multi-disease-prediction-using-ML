@@ -1,7 +1,6 @@
 
-
 import React, { Component } from "react";
-
+import parse from 'html-react-parser';
 import "./Symptom.css";
 
 class PredictedDisease extends Component {
@@ -9,9 +8,10 @@ class PredictedDisease extends Component {
         super(props);
 
         this.state = {
-            Symptoms: ['test'],
+            Symptoms: [],
             searched: '',
             user_symptoms: [],
+            wikiData: '',
         };
 
         fetch('http://127.0.0.1:5000/predict-disease', {
@@ -25,25 +25,34 @@ class PredictedDisease extends Component {
         });
 
         this.getValue = this.getValue.bind(this);
+        this.showWikiData = this.showWikiData.bind(this);
     }
 
     //Adds Symptoms to the UserSymptom state array
-
-    addSymptomButtonEvent = (e) => {
-    if (!this.state.user_symptoms.includes(e.target.value)) {
-        let user_symptoms = [...this.state.user_symptoms, e.target.value];
-        this.props.addCooccuringSymptom(user_symptoms);
-        return this.setState({ user_symptoms: user_symptoms });
+    
+    showWikiData = (disease) => {
+        let formData = new FormData();
+        formData.append('disease', disease);
+        fetch('http://127.0.0.1:5000/disease-details', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(wikiData => {
+            this.setState({
+                wikiData: wikiData.details,
+            });
+        });
     }
-    };
+
     //Deletes Symptoms to the UserSymptom state array
     deleteSymptomButtonEvent = (e) => {
-    if (this.state.user_symptoms.includes(e.target.value)) {
-        let user_symptoms = [...this.state.user_symptoms];
-        user_symptoms = user_symptoms.filter((s) => s !== e.target.value);
-        this.setState({ user_symptoms: user_symptoms });
-        this.props.addCooccuringSymptom(user_symptoms);
-    }
+        if (this.state.user_symptoms.includes(e.target.value)) {
+            let user_symptoms = [...this.state.user_symptoms];
+            user_symptoms = user_symptoms.filter((s) => s !== e.target.value);
+            this.setState({ user_symptoms: user_symptoms });
+            this.props.addCooccuringSymptom(user_symptoms);
+        }
     };
 
     //Set the state "Searched" according to the input
@@ -76,23 +85,26 @@ class PredictedDisease extends Component {
         return (
             <>
                 <h3>Predicted Diseases</h3>
-                <div id="#Symptoms" className="grid-row width-full">
-                
-                <div className="col-12 tablet:grid-col-5">
-                    <ul>
-                        {Diseases.map((key, id) => (
-                            <li key={id}>
-                                {key}{" "}
-                            <button onClick={this.deleteSymptomButtonEvent.bind(this)} key={id} value={key}>
-                                X
-                            </button>
-                            </li>
-                        ))}
-                    </ul>
-
-                </div>
-                </div>
-            
+                    <div id="#Symptoms" className="grid-row width-full">
+                        {Diseases.length === 0 
+                        ? <p>Loading...</p>
+                        : <div className="col-12 tablet:grid-col-5">
+                            <ul className="symtomsListBox padding-top-2">
+                                {Diseases.map((disease, index) => {
+                                    return (
+                                        <li key={index}>
+                                            <button onClick={() => this.showWikiData(disease)} value={disease}>
+                                                {`${disease} - ${Probabilities[index]}%`}
+                                            </button>
+                                        </li>
+                                    )
+                                })}
+                            </ul>
+                        </div>}
+                        <div className="col-12 tablet:grid-col-5" style={{whiteSpace: "pre-wrap"}}>
+                            {parse(this.state.wikiData)}
+                        </div>
+                    </div>
             </>
         );
     };
