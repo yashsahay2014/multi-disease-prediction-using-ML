@@ -44,7 +44,7 @@ def getDiseasePrediction():
         predictedDiseases = diseasePredictor.predict(),
     )
 
-@app.route('/disease-details', methods=['GET'])
+@app.route('/disease-details', methods=['POST'])
 def getDiseaseDetail():
     disease = request.form.get('disease')
     return jsonify (
