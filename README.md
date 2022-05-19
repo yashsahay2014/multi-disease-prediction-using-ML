@@ -1,6 +1,5 @@
 # Multi-Disease Prediction using Machine Learning
 
-## Introduction 
 This project uses machine learning algorithms to detect and predict diseases based on
 the symptoms provided by the user and also, provides details about the top fetched
 diseases including their diagnostic methods, prevention and treatment.
