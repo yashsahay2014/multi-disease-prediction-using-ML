@@ -44,6 +44,10 @@ npm start
 ```
 
 Or you can use **Google Colab** for running the system instead of an IDE.
+
+## Understanding the code
+Go through `model/README.md` to have a better understanding of how the project works.
+
 ## Contributors
 
 - [Yash Sahay](https://www.github.com/yashsahay2014)
