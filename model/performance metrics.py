@@ -1,4 +1,4 @@
-# importing a 3-class dataset from sklearn's toy dataset
+# importing required libraries
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import confusion_matrix
@@ -21,9 +21,11 @@ import matplotlib.pyplot as plt
 import seaborn as sn
 warnings.simplefilter("ignore")
 
+# reading dataset as dataframe 'df'
 df_comb = pd.read_csv("Dataset/dis_sym_dataset_comb.csv")
 # df = pd.DataFrame(data,columns=['A','B','C'])
 
+# obtaining Correlation matrix
 # corrMatrix = df.corr()
 # # print (corrMatrix)
 # sn.heatmap(corrMatrix, annot=True)
@@ -40,7 +42,7 @@ x_train, x_test, y_train, y_test = train_test_split(
     X, Y, test_size=0.20, random_state=1)
 
 
-# LR Classifier
+# using LR Classifier
 lr = LogisticRegression()
 lr = lr.fit(x_train, y_train)
 # prediction of labels for the test data
@@ -48,13 +50,13 @@ y_pred = lr.predict(x_test)
 acc_lr = round(Decimal(accuracy_score(y_test, y_pred) * 100), 2)
 print(f"Accuracy (LR) : {acc_lr}%")
 
-# importing confusion matrix
+# obtaining confusion matrix
 confusion = confusion_matrix(y_test, y_pred)
 print('Confusion Matrix\n')
 print(confusion)
 
 
-# importing accuracy_score, precision_score, recall_score, f1_score
+# obtaining accuracy_score, precision_score, recall_score, f1_score
 print('\nAccuracy: {:.2f}\n'.format(accuracy_score(y_test, y_pred)))
 
 print('Micro Precision: {:.2f}'.format(
