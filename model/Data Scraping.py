@@ -1,4 +1,4 @@
-
+# import the required libraries
 import pickle
 import re
 from googlesearch import search
@@ -25,6 +25,11 @@ for c in small_alpha:
 with open('list_diseaseNames.pkl', 'rb') as handle:
     diseases2 = pickle.load(handle)
 
+''' 
+diseases is used to store all fetched data from NHP.
+diseases2 is used to read/load already stored data.
+'''
+    
 #print(len(diseases2))
 #print(len(diseases))
 #print(len(set(diseases).intersection(set(diseases2))))
@@ -32,7 +37,7 @@ with open('list_diseaseNames.pkl', 'rb') as handle:
 a=set(diseases)
 b=set(diseases2)
 c=list(a.union(b))
-c.sort()
+c.sort() # sorted list of diseases 
 
 #print(c)
 
