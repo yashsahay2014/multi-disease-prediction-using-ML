@@ -22,7 +22,7 @@ The final dataset obtained above was fed into multiple ML classifier models.
 
 - `Disease Predictor.py`
 
-The main syptom based multi-disease prediction code. 
+The main multi-disease prediction code, which takes unstructed user symptoms as input and outputs a list of top-10 probable diseases. 
 
 - `Treatment.py`
 
