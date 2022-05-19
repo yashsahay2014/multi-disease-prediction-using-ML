@@ -1,6 +1,5 @@
-# Disease predictor
-
-## Install python requirements
+## Installation
+Install python requirements
 ```
 cd api/
 
@@ -17,13 +16,15 @@ pip3 install -r requirements.txt
 deactivate
 ```
 
-## Install react dependencies
+Install react dependencies
 ```
 cd frontend && npm install
 ```
 
-## Start the app
+Start the app
 ```
 # In frontend/
 npm start
 ```
+
+Or you can use **Google Colab** for running the system instead of an IDE.
