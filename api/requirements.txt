@@ -10,7 +10,7 @@ google==3.0.0
 idna==2.10
 itsdangerous==2.1.1
 Jinja2==3.0.3
-joblib==1.1.0
+joblib==1.2.0
 MarkupSafe==2.1.0
 nltk==3.7
 numpy==1.22.3
